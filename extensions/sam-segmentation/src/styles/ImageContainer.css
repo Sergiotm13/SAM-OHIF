@@ -1,0 +1,33 @@
+#image-container {
+  width: 65%;
+  border: 1px solid rgb(0, 68, 68);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#loaded_image {
+  width: 57%;
+  height: auto;
+  position: absolute;
+  max-width: 100%;
+  display: block;
+}
+
+#other_canvas {
+  z-index: 11;
+  width: 100%;
+  height: auto;
+}
+
+#canvas {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#load_image {
+  color: white;
+}

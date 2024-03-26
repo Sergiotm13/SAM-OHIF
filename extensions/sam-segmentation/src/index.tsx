@@ -1,5 +1,6 @@
 import { id } from './id';
 import TestComponent from './viewports/TestComponent';
+import App from './viewports/App';
 import React from 'react';
 
 /**
@@ -33,8 +34,7 @@ export default {
    * that is provided by the Cornerstone extension in OHIF.
    */
   getViewportModule: ({ servicesManager, commandsManager, extensionManager }) => {
-    console.log('Registering from my own extension sergio');
-    const testComponent = props => {
+    /*
       return (
         <TestComponent
           servicesManager={servicesManager}
@@ -43,12 +43,20 @@ export default {
           {...props}
         />
       );
+      */
+
+    const testComponent = props => {
+      return (
+        <>
+          <App
+            servicesManager={servicesManager}
+            commandsManager={commandsManager}
+            extensionManager={extensionManager}
+            {...props}
+          ></App>
+        </>
+      );
     };
-
-    // Obtener la instancia del visor OHIF
-    const viewer = window.document.getElementById('ohif-viewer');
-
-    const screenshotTarget = document.body;
 
     return [{ name: 'test-component', component: testComponent }];
   },
