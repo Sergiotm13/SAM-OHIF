@@ -7,7 +7,7 @@ import React from 'react';
 function App({ props }) {
   const [selectedOption, setSelectedOption] = useState(-1);
 
-  const handleChangeOption = buttonNumber => {
+  const handleChangeOption = (buttonNumber:number)=> {
     if (selectedOption == buttonNumber) setSelectedOption(-1);
     else {
       setSelectedOption(buttonNumber);

@@ -51,6 +51,10 @@
       "packageName": "@ohif/extension-cornerstone-dicom-rt",
       "default": false,
       "version": "3.0.0"
+    },
+    {
+      "packageName": "sam-segmentation",
+      "version": "1.0.0"
     }
   ],
   "modes": [
