@@ -4,12 +4,13 @@ import ImageContainer from './ImageContainer';
 import UserOptions from './UserOptions';
 import React from 'react';
 
-function App({ props }) {
+function App({ servicesManager }) {
   const [selectedOption, setSelectedOption] = useState(-1);
 
-  const handleChangeOption = (buttonNumber:number)=> {
-    if (selectedOption == buttonNumber) setSelectedOption(-1);
-    else {
+  const handleChangeOption = (buttonNumber: number) => {
+    if (selectedOption === buttonNumber) {
+      setSelectedOption(-1);
+    } else {
       setSelectedOption(buttonNumber);
     }
   };
@@ -30,9 +31,8 @@ function App({ props }) {
             &times;
           </span>
 
-          <ImageContainer selectedOption={selectedOption}/>
+          <ImageContainer selectedOption={selectedOption} servicesManager={servicesManager} />
           <UserOptions handleChangeOption={handleChangeOption} selectedOption={selectedOption} />
-
         </div>
       </div>
       <button onClick={showModal}>SAM Segmentation</button>

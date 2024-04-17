@@ -1,10 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import '../styles/ImageContainer.css';
-import { drawImage, handleFileInputChange } from '../resources/ImageCharging';
+import { drawImage } from '../resources/ImageCharging';
 import React from 'react';
 import { Point, type Box } from '../types/types';
+import { POSITIVE_POINT_COLOR, NEGATIVE_POINT_COLOR, BOX_COLOR } from '../resources/const';
 
-export default function ImageContainer({ selectedOption }) {
+export default function ImageContainer({ selectedOption, servicesManager }) {
+  const { viewportGridService } = servicesManager.services;
+
   const [imageSrc, setImageSrc] = useState('');
   const canvasRef = useRef(null);
   const canvasRef0 = useRef(null);
@@ -90,8 +93,29 @@ export default function ImageContainer({ selectedOption }) {
   };
 
   const capture_image = () => {
-    const canvas = document.getElementsByClassName('cornerstone-canvas')[0] as HTMLCanvasElement;
-    if (!canvas) return;
+    // Obtener el id del viewport activo
+    const active_viewport_id = viewportGridService.getActiveViewportId();
+
+    // Obtengo el estado general de los viewports, para sacarlos todos
+    const viewport_state = viewportGridService.getState();
+    const viewports = viewport_state.viewports;
+
+    // Sabiendolos todos, saco el índice del viewport activo
+    let active_viewport_index = 0;
+    const viewportsArray = Array.from(viewports);
+    for (let i = 0; i < viewportsArray.length; i++) {
+      if (viewportsArray[i][0] === active_viewport_id) {
+        active_viewport_index = i;
+        break;
+      }
+    }
+
+    const canvas = document.getElementsByClassName('cornerstone-canvas')[
+      active_viewport_index
+    ] as HTMLCanvasElement;
+    if (!canvas) {
+      return;
+    }
 
     // Obtener las dimensiones de la imagen
     const imageWidth = canvas.width;
@@ -132,7 +156,7 @@ export default function ImageContainer({ selectedOption }) {
     };
   }, []);
 
-  const drawPoint = (clientX: number, clientY: number, fillStyle : string) => {
+  const drawPoint = (clientX: number, clientY: number, fillStyle: string) => {
     const x = (clientX - canvasOffSetX.current) * scaleX;
     const y = (clientY - canvasOffSetY.current) * scaleY;
 
@@ -168,7 +192,7 @@ export default function ImageContainer({ selectedOption }) {
 
     contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-    contextRef.current.strokeStyle = '#90ee90';
+    contextRef.current.strokeStyle = BOX_COLOR;
 
     rectangles.forEach(rectangle => {
       contextRef.current.strokeRect(
@@ -179,13 +203,12 @@ export default function ImageContainer({ selectedOption }) {
       );
     });
 
-
     positivePoints.forEach(point => {
-      drawPoint(point.point.x, point.point.y, "#90ee90");
+      drawPoint(point.point.x, point.point.y, POSITIVE_POINT_COLOR);
     });
 
     negativePoints.forEach(point => {
-      drawPoint(point.point.x, point.point.y, "red");
+      drawPoint(point.point.x, point.point.y, NEGATIVE_POINT_COLOR);
     });
 
     contextRef.current.strokeRect(startX.current, startY.current, rectWidht, rectHeight);
@@ -208,7 +231,7 @@ export default function ImageContainer({ selectedOption }) {
   };
 
   const handleCanvasClick = (event: React.MouseEvent) => {
-    const fillStyle = selectedOption === 0 ? 'red' : '#90ee90';
+    const fillStyle = selectedOption === 0 ? NEGATIVE_POINT_COLOR : POSITIVE_POINT_COLOR;
 
     const point = { point: { x: event.clientX, y: event.clientY } };
     addPoint(point);

@@ -4,7 +4,7 @@
   // Spacing
   // ===
   "editor.insertSpaces": true,
-  "editor.tabSize": 2,
+  "editor.tabSize": 4,
   "editor.trimAutoWhitespace": true,
   "files.trimTrailingWhitespace": true,
   "files.eol": "\n",
@@ -32,5 +32,7 @@
   "workbench.colorCustomizations": {},
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
-  }
+  },
+  "editor.detectIndentation": true,
+  "prettier.useTabs": true
 }
