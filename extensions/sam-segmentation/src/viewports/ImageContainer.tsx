@@ -4,11 +4,22 @@ import { drawImage } from '../resources/ImageCharging';
 import React from 'react';
 import { Point, type Box } from '../types/types';
 import { POSITIVE_POINT_COLOR, NEGATIVE_POINT_COLOR, BOX_COLOR } from '../resources/const';
+import { handleResize } from '../resources/ScreenHandler';
 
-export default function ImageContainer({ selectedOption, servicesManager }) {
+export default function ImageContainer({
+  selectedOption,
+  servicesManager,
+  rectangles,
+  setRectangles,
+  positivePoints,
+  setPositivePoints,
+  negativePoints,
+  setNegativePoints,
+  imageSrc,
+  setImageSrc,
+}) {
   const { viewportGridService } = servicesManager.services;
 
-  const [imageSrc, setImageSrc] = useState('');
   const canvasRef = useRef(null);
   const canvasRef0 = useRef(null);
   const contextRef = useRef(null);
@@ -23,23 +34,6 @@ export default function ImageContainer({ selectedOption, servicesManager }) {
   const startX = useRef(null);
   const startY = useRef(null);
 
-  const [rectangles, setRectangles] = useState([]);
-  const [positivePoints, setPositivePoints] = useState([]);
-  const [negativePoints, setNegativePoints] = useState([]);
-
-  const handleResize = () => {
-    const otherCanvasStyle = window.getComputedStyle(document.getElementById('other_canvas'));
-    const loadedImage = document.getElementById('loaded_image');
-
-    if (loadedImage) {
-      loadedImage.style.top = otherCanvasStyle.getPropertyValue('top');
-      loadedImage.style.bottom = otherCanvasStyle.getPropertyValue('bottom');
-      loadedImage.style.left = otherCanvasStyle.getPropertyValue('left');
-      loadedImage.style.right = otherCanvasStyle.getPropertyValue('right');
-      loadedImage.style.width = otherCanvasStyle.getPropertyValue('width');
-      loadedImage.style.height = otherCanvasStyle.getPropertyValue('height');
-    }
-  };
   window.onresize = handleResize;
 
   const addRectangle = (newRectangle: Box) => {
@@ -68,6 +62,19 @@ export default function ImageContainer({ selectedOption, servicesManager }) {
       setIsDrawing(false);
     }
   }, [isDrawing]);
+
+  const eraseScreen = () => {
+    setRectangles([]);
+    setPositivePoints([]);
+    setNegativePoints([]);
+    contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+  };
+
+  useEffect(() => {
+    if (selectedOption === 3) {
+      eraseScreen();
+    }
+  }, [selectedOption]);
 
   useEffect(() => {
     drawImage(imageSrc, canvasRef0);
@@ -116,14 +123,17 @@ export default function ImageContainer({ selectedOption, servicesManager }) {
     if (!canvas) {
       return;
     }
-
+    if (canvas.toDataURL('image/png') === imageSrc) {
+      eraseScreen();
+      return;
+    }
     // Obtener las dimensiones de la imagen
     const imageWidth = canvas.width;
     const imageHeight = canvas.height;
 
-    // Establecer las dimensiones de los elementos canvas, loaded_image y other_canvas
+    // Establecer las dimensiones de los elementos canvas, loaded_image y captured_canvas
     const loadedImage = document.getElementById('loaded_image') as HTMLCanvasElement;
-    const otherCanvas = document.getElementById('other_canvas') as HTMLCanvasElement;
+    const otherCanvas = document.getElementById('captured_canvas') as HTMLCanvasElement;
 
     if (loadedImage) {
       loadedImage.width = imageWidth;
@@ -138,6 +148,7 @@ export default function ImageContainer({ selectedOption, servicesManager }) {
     // Como habrá una nueva imagen, borro los rectángulos y los puntos de la anterior
     setRectangles([]);
     setPositivePoints([]);
+    setNegativePoints([]);
 
     setImageSrc(canvas.toDataURL('image/png'));
     handleResize();
@@ -249,7 +260,7 @@ export default function ImageContainer({ selectedOption, servicesManager }) {
         {imageSrc && <canvas ref={canvasRef0} id="loaded_image" />}
         <canvas
           className="canvas-container-rect"
-          id="other_canvas"
+          id="captured_canvas"
           ref={canvasRef}
           onMouseDown={startDrawingRectangle}
           onMouseMove={drawRectangle}

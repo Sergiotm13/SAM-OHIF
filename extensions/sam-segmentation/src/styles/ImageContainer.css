@@ -1,9 +1,10 @@
 #image-container {
-  width: 65%;
-  border: 1px solid rgb(0, 68, 68);
+  width: 75%;
+  /* rgb(0, 68, 68); */
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-shadow: 0 0 10px 0 rgba(94, 94, 94, 0.5);
 }
 
 #loaded_image {
@@ -14,15 +15,18 @@
   display: block;
 }
 
-#other_canvas {
+#captured_canvas {
   z-index: 11;
   width: 100%;
   height: auto;
+  max-height: 100%;
 }
 
 #canvas {
   width: 100%;
   height: auto;
+  max-height: 100%;
+
   display: flex;
   flex-direction: column;
   align-items: center;

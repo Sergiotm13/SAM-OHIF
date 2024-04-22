@@ -60,7 +60,8 @@
   "dependencies": {
     "@babel/runtime": "^7.20.13",
     "@kitware/vtk.js": "29.7.0",
-    "core-js": "^3.2.1"
+    "core-js": "^3.2.1",
+    "react-select": "^5.8.0"
   },
   "peerDependencies": {
     "react": "17.0.2",

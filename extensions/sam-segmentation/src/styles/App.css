@@ -22,21 +22,25 @@
   background-color: rgba(0, 0, 0, 0.5);
 
   z-index: 9999;
+
+  backdrop-filter: blur(5px);
 }
 
 .modal-content {
   background-color: #040614;
   padding: 120px;
   border-radius: 8px;
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 0 20px rgba(52, 52, 52, 0.5);
+
   position: relative;
   width: 95%;
-  min-height: 60%;
+  min-height: 90%;
   height: fit-content;
   display: flex;
   justify-content: space-evenly;
   align-items: center;
   text-align: center;
+  animation: modalFadeIn 0.3s ease forwards;
 }
 
 .modal-logo {
@@ -59,9 +63,40 @@
 
 .close-btn {
   position: absolute;
-  top: 10px;
-  right: 40px;
-  font-size: 50px;
+  top: 15px;
+  right: 15px;
+  font-size: 24px;
   cursor: pointer;
-  color: white;
+  color: #888; /* Cambiar color del icono de cerrar */
+  transition: color 0.3s ease; /* Agregar transición de color */
+}
+
+.close-btn:hover {
+  color: #000; /* Cambiar color al pasar el mouse */
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Nuevas reglas para la animación de desvanecimiento */
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.fadeOut {
+  animation-name: fadeOut;
+  animation-duration: 0.5s;
 }
