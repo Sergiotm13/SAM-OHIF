@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import '../styles/App.css';
 import ImageContainer from './ImageContainer';
 import UserOptions from './UserOptions';
@@ -6,6 +6,7 @@ import React from 'react';
 import { imageDataUrlToBlob } from '../resources/ImageCharging';
 
 function App({ servicesManager }) {
+  const [sessionID, setSessionID] = useState('');
   const [selectedOption, setSelectedOption] = useState(-1);
 
   const [rectangles, setRectangles] = useState([]);
@@ -14,6 +15,11 @@ function App({ servicesManager }) {
   const [model, setModel] = React.useState(null);
   const [modalDisplay, setModalDisplay] = useState('block');
   const [imageSrc, setImageSrc] = useState('');
+
+  // Iniciar sesión al cargar la página
+  useEffect(() => {
+    if (sessionID === '') setSessionID(Math.random().toString(36).substring(7));
+  }, []);
 
   const handleChangeOption = (buttonNumber: number) => {
     if (selectedOption === buttonNumber) {
@@ -39,21 +45,15 @@ function App({ servicesManager }) {
     document.getElementById('customModal').style.display = 'flex';
   };
 
-  const sendParametersToServer = async () => {
+  const sendImageAndInputsToServer = async () => {
     const sam_input = {
-      model: model,
-      rectangles: rectangles.map(
-        single_rectangle => (
-          console.log('rect'),
-          console.log(single_rectangle),
-          {
-            startX: single_rectangle.rect[0].startX,
-            startY: single_rectangle.rect[0].startY,
-            width: single_rectangle.rect[0].width,
-            height: single_rectangle.rect[0].height,
-          }
-        )
-      ),
+      model: model.label,
+      rectangles: rectangles.map(single_rectangle => ({
+        startX: single_rectangle.rect[0].startX,
+        startY: single_rectangle.rect[0].startY,
+        width: single_rectangle.rect[0].width,
+        height: single_rectangle.rect[0].height,
+      })),
       positive_points: positivePoints.map(single_point => ({
         x: single_point.point.x,
         y: single_point.point.y,
@@ -63,28 +63,15 @@ function App({ servicesManager }) {
         y: single_point.point.y,
       })),
     };
-    try {
-      const response = await fetch('http://localhost:8000/get_parameters/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(sam_input),
-      });
 
-      const data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
+    console.log(model);
 
-  const sendImageToServer = async () => {
     const formData = new FormData();
     formData.append('file', imageDataUrlToBlob(imageSrc), 'image.png');
+    formData.append('sam_input', JSON.stringify(sam_input));
 
     try {
-      const response = await fetch('http://localhost:8000/get_image/', {
+      const response = await fetch(`http://localhost:8000/get_image_and_parameters/${sessionID}`, {
         method: 'POST',
         body: formData,
       });
@@ -97,8 +84,7 @@ function App({ servicesManager }) {
   };
 
   const segment = () => {
-    console.log('Segmenting');
-    sendParametersToServer();
+    sendImageAndInputsToServer();
   };
 
   return (

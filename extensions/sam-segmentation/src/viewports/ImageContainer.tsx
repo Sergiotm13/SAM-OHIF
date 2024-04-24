@@ -120,6 +120,7 @@ export default function ImageContainer({
     const canvas = document.getElementsByClassName('cornerstone-canvas')[
       active_viewport_index
     ] as HTMLCanvasElement;
+
     if (!canvas) {
       return;
     }
@@ -167,14 +168,26 @@ export default function ImageContainer({
     };
   }, []);
 
-  const drawPoint = (clientX: number, clientY: number, fillStyle: string) => {
-    const x = (clientX - canvasOffSetX.current) * scaleX;
-    const y = (clientY - canvasOffSetY.current) * scaleY;
+  const drawPoint = (point_x: number, point_y: number, fillStyle: string) => {
+    const x = point_x / scaleX + canvasOffSetX.current;
+    const y = point_y / scaleY + canvasOffSetY.current;
+
+    const x2 = (x - canvasOffSetX.current) * scaleX;
+    const y2 = (y - canvasOffSetY.current) * scaleY;
 
     contextRef.current.fillStyle = fillStyle;
     contextRef.current.beginPath();
-    contextRef.current.arc(x, y, 5, 0, 2 * Math.PI);
+    contextRef.current.arc(x2, y2, 5, 0, 2 * Math.PI);
     contextRef.current.fill();
+
+    console.log('----------------Dibujando punto----------------');
+    console.log('He dibujado el punto guardado como: ');
+    console.log('x: ' + point_x + ' y: ' + point_y);
+    console.log('Pero en realidad he dibujado:');
+    console.log('x: ' + x + ' y: ' + y);
+    console.log('Con un offset de:');
+    console.log('x: ' + canvasOffSetX.current + ' y: ' + canvasOffSetY.current);
+    console.log('--------------------------------\n\n');
   };
 
   const startDrawingRectangle = ({ nativeEvent }) => {
@@ -244,10 +257,22 @@ export default function ImageContainer({
   const handleCanvasClick = (event: React.MouseEvent) => {
     const fillStyle = selectedOption === 0 ? NEGATIVE_POINT_COLOR : POSITIVE_POINT_COLOR;
 
-    const point = { point: { x: event.clientX, y: event.clientY } };
+    const x_coord = (event.clientX - canvasOffSetX.current) * scaleX;
+    const y_coord = (event.clientY - canvasOffSetY.current) * scaleY;
+
+    const point = { point: { x: x_coord, y: y_coord } };
     addPoint(point);
 
-    drawPoint(event.clientX, event.clientY, fillStyle);
+    console.log('----------------Creando punto----------------');
+    console.log('He guardado el punto con: ');
+    console.log('x: ' + x_coord + ' y: ' + y_coord);
+    console.log('Pero en realidad he pulsado en:');
+    console.log('x: ' + event.clientX + ' y: ' + event.clientY);
+    console.log('Con un offset de:');
+    console.log('x: ' + canvasOffSetX.current + ' y: ' + canvasOffSetY.current);
+    console.log('--------------------------------\n\n');
+
+    drawPoint(x_coord, y_coord, fillStyle);
   };
 
   return (
