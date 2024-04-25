@@ -6,7 +6,6 @@ import React from 'react';
 import { imageDataUrlToBlob } from '../resources/ImageCharging';
 
 function App({ servicesManager }) {
-  const [sessionID, setSessionID] = useState('');
   const [selectedOption, setSelectedOption] = useState(-1);
 
   const [rectangles, setRectangles] = useState([]);
@@ -15,11 +14,6 @@ function App({ servicesManager }) {
   const [model, setModel] = React.useState(null);
   const [modalDisplay, setModalDisplay] = useState('block');
   const [imageSrc, setImageSrc] = useState('');
-
-  // Iniciar sesión al cargar la página
-  useEffect(() => {
-    if (sessionID === '') setSessionID(Math.random().toString(36).substring(7));
-  }, []);
 
   const handleChangeOption = (buttonNumber: number) => {
     if (selectedOption === buttonNumber) {
@@ -47,7 +41,7 @@ function App({ servicesManager }) {
 
   const sendImageAndInputsToServer = async () => {
     const sam_input = {
-      model: model.label,
+      model: model ? model.label : undefined,
       rectangles: rectangles.map(single_rectangle => ({
         startX: single_rectangle.rect[0].startX,
         startY: single_rectangle.rect[0].startY,
@@ -64,27 +58,28 @@ function App({ servicesManager }) {
       })),
     };
 
-    console.log(model);
+    console.log(sam_input);
 
     const formData = new FormData();
     formData.append('file', imageDataUrlToBlob(imageSrc), 'image.png');
     formData.append('sam_input', JSON.stringify(sam_input));
 
     try {
-      const response = await fetch(`http://localhost:8000/get_image_and_parameters/${sessionID}`, {
+      const response = await fetch(`http://localhost:8000/get_image_and_parameters/`, {
         method: 'POST',
         body: formData,
       });
 
-      const data = await response.json();
-      console.log(data);
+      const mask = await response.json();
+      console.log(mask);
+      return mask;
     } catch (error) {
       console.error('Error:', error);
     }
   };
 
   const segment = () => {
-    sendImageAndInputsToServer();
+    const mask = sendImageAndInputsToServer();
   };
 
   return (

@@ -175,19 +175,27 @@ export default function ImageContainer({
     const x2 = (x - canvasOffSetX.current) * scaleX;
     const y2 = (y - canvasOffSetY.current) * scaleY;
 
+    const borderWidth = 2; // Grosor del borde
+    const borderColor = 'black'; // Color del borde
+    const currentStrokeStyle = contextRef.current.strokeStyle;
+
     contextRef.current.fillStyle = fillStyle;
+    contextRef.current.strokeStyle = borderColor; // Establecer el color del borde
+    contextRef.current.lineWidth = borderWidth; // Establecer el grosor del borde
     contextRef.current.beginPath();
     contextRef.current.arc(x2, y2, 5, 0, 2 * Math.PI);
     contextRef.current.fill();
+    contextRef.current.stroke(); // Dibujar el borde
+    contextRef.current.strokeStyle = currentStrokeStyle;
 
-    console.log('----------------Dibujando punto----------------');
-    console.log('He dibujado el punto guardado como: ');
-    console.log('x: ' + point_x + ' y: ' + point_y);
-    console.log('Pero en realidad he dibujado:');
-    console.log('x: ' + x + ' y: ' + y);
-    console.log('Con un offset de:');
-    console.log('x: ' + canvasOffSetX.current + ' y: ' + canvasOffSetY.current);
-    console.log('--------------------------------\n\n');
+    // console.log('----------------Dibujando punto----------------');
+    // console.log('He dibujado el punto guardado como: ');
+    // console.log('x: ' + point_x + ' y: ' + point_y);
+    // console.log('Pero en realidad he dibujado:');
+    // console.log('x: ' + x + ' y: ' + y);
+    // console.log('Con un offset de:');
+    // console.log('x: ' + canvasOffSetX.current + ' y: ' + canvasOffSetY.current);
+    // console.log('--------------------------------\n\n');
   };
 
   const startDrawingRectangle = ({ nativeEvent }) => {
@@ -263,14 +271,14 @@ export default function ImageContainer({
     const point = { point: { x: x_coord, y: y_coord } };
     addPoint(point);
 
-    console.log('----------------Creando punto----------------');
-    console.log('He guardado el punto con: ');
-    console.log('x: ' + x_coord + ' y: ' + y_coord);
-    console.log('Pero en realidad he pulsado en:');
-    console.log('x: ' + event.clientX + ' y: ' + event.clientY);
-    console.log('Con un offset de:');
-    console.log('x: ' + canvasOffSetX.current + ' y: ' + canvasOffSetY.current);
-    console.log('--------------------------------\n\n');
+    // console.log('----------------Creando punto----------------');
+    // console.log('He guardado el punto con: ');
+    // console.log('x: ' + x_coord + ' y: ' + y_coord);
+    // console.log('Pero en realidad he pulsado en:');
+    // console.log('x: ' + event.clientX + ' y: ' + event.clientY);
+    // console.log('Con un offset de:');
+    // console.log('x: ' + canvasOffSetX.current + ' y: ' + canvasOffSetY.current);
+    // console.log('--------------------------------\n\n');
 
     drawPoint(x_coord, y_coord, fillStyle);
   };
