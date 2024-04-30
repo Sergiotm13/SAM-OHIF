@@ -70,8 +70,15 @@ function App({ servicesManager }) {
         body: formData,
       });
 
-      const mask = await response.json();
+      // const mask = await response.json();
+      // console.log(mask);
+
+      const mask = await response.blob();
       console.log(mask);
+      console.log(typeof mask);
+
+      setImageSrc(URL.createObjectURL(mask));
+
       return mask;
     } catch (error) {
       console.error('Error:', error);
