@@ -8,6 +8,7 @@ import { darkThemeStyles } from '../styles/react-select-custom-styles';
 
 export default function UserOptions({ handleChangeOption, selectedOption, setModel, segment }) {
   const handleUserChangedOption = (opt: number) => {
+    console.log('User changed option:', opt);
     handleChangeOption(opt);
   };
 
