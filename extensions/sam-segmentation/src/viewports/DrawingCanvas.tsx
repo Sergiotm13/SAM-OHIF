@@ -6,6 +6,7 @@ import { handleResize } from '../resources/ScreenHandler';
 // import the css
 import '../styles/DrawingCanvas.css';
 import { add } from '@kitware/vtk.js/Common/Core/Math';
+import { useDebounce } from 'platform/app/src/hooks';
 
 export const DrawingCanvas = ({
   selectedOption,
@@ -20,16 +21,13 @@ export const DrawingCanvas = ({
   activeCanvasHeight,
   activeCanvasTop,
   activeCanvasLeft,
+  handleScaleChange,
+  onCanvasClean,
 }) => {
-  const { viewportGridService } = servicesManager.services;
-
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
 
   const [isDrawing, setIsDrawing] = useState(false);
-
-  const [scaleX, setScaleX] = useState<number>();
-  const [scaleY, setScaleY] = useState<number>();
 
   const canvasOffSetX = useRef(null);
   const canvasOffSetY = useRef(null);
@@ -39,8 +37,50 @@ export const DrawingCanvas = ({
   window.onresize = handleResize;
 
   useEffect(() => {
-    console.log('REFRESHED\n\n\n');
+    const canvas = canvasRef.current;
+
+    const context = canvas.getContext('2d');
+
+    contextRef.current = context;
+    contextRef.current.strokeStyle = BOX_COLOR;
+
+    rectangles.forEach(rectangle => {
+      contextRef.current.strokeRect(
+        rectangle.rect[0].startX,
+        rectangle.rect[0].startY,
+        rectangle.rect[0].width,
+        rectangle.rect[0].height
+      );
+    });
+
+    positivePoints.forEach(point => {
+      drawPoint(point.point.x, point.point.y, POSITIVE_POINT_COLOR);
+    });
+
+    negativePoints.forEach(point => {
+      drawPoint(point.point.x, point.point.y, NEGATIVE_POINT_COLOR);
+    });
+  }, [positivePoints, negativePoints, rectangles]);
+
+  useEffect(() => {
+    setVars();
+
+    const handleResizeUpdateVars = () => {
+      setVars();
+    };
+
+    window.addEventListener('resize', handleResizeUpdateVars);
+    return () => {
+      window.removeEventListener('resize', handleResizeUpdateVars);
+    };
   }, []);
+
+  useEffect(() => {
+    if (selectedOption === 3) {
+      eraseScreen();
+      onCanvasClean();
+    }
+  }, [selectedOption]);
 
   useEffect(() => {
     if (!(selectedOption === 2)) {
@@ -78,12 +118,6 @@ export const DrawingCanvas = ({
       .clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   };
 
-  useEffect(() => {
-    if (selectedOption === 3) {
-      eraseScreen();
-    }
-  }, [selectedOption]);
-
   const setVars = () => {
     const canvas = canvasRef.current;
 
@@ -97,61 +131,9 @@ export const DrawingCanvas = ({
 
     canvasOffSetY.current = canvasOffSet.top;
     canvasOffSetX.current = canvasOffSet.left;
-
-    if (canvasOffSet.width === 0 || canvasOffSet.height === 0) {
-      setScaleX(1);
-      setScaleY(1);
-      return;
-    }
-
-    setScaleX(canvas.width / canvasOffSet.width);
-    setScaleY(canvas.height / canvasOffSet.height);
   };
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-
-    const context = canvas.getContext('2d');
-
-    contextRef.current = context;
-    contextRef.current.strokeStyle = BOX_COLOR;
-
-    rectangles.forEach(rectangle => {
-      contextRef.current.strokeRect(
-        rectangle.rect[0].startX,
-        rectangle.rect[0].startY,
-        rectangle.rect[0].width,
-        rectangle.rect[0].height
-      );
-    });
-
-    positivePoints.forEach(point => {
-      console.log('Dibujando punto positivo');
-      drawPoint(point.point.x, point.point.y, POSITIVE_POINT_COLOR);
-    });
-
-    negativePoints.forEach(point => {
-      console.log('Dibujando punto negativo');
-
-      drawPoint(point.point.x, point.point.y, NEGATIVE_POINT_COLOR);
-    });
-  }, []);
-
-  useEffect(() => {
-    setVars();
-
-    const handleResizeUpdateVars = () => {
-      setVars();
-    };
-
-    window.addEventListener('resize', handleResizeUpdateVars);
-    return () => {
-      window.removeEventListener('resize', handleResizeUpdateVars);
-    };
-  }, []);
-
   const startDrawingRectangle = ({ nativeEvent }) => {
-    console.log('Start drawing rectangle');
     nativeEvent.preventDefault();
     nativeEvent.stopPropagation();
 
@@ -172,9 +154,6 @@ export const DrawingCanvas = ({
     if (!isDrawing) {
       return;
     }
-
-    console.log('Drawing rectangle');
-
     nativeEvent.preventDefault();
     nativeEvent.stopPropagation();
 
@@ -210,7 +189,6 @@ export const DrawingCanvas = ({
       drawPoint(point.point.x, point.point.y, NEGATIVE_POINT_COLOR);
     });
 
-    console.log('Drawing rectangle ends here');
     contextRef.current.strokeRect(startX.current, startY.current, rectWidht, rectHeight);
   };
 
@@ -236,6 +214,9 @@ export const DrawingCanvas = ({
 
   const drawPoint = (point_x: number, point_y: number, fillStyle: string) => {
     const canvas = canvasRef.current;
+    const canvasOffSet = canvas.getBoundingClientRect();
+    const x_coord = point_x;
+    const y_coord = point_y;
 
     const context = canvas.getContext('2d');
     context.lineCap = 'round';
@@ -250,7 +231,7 @@ export const DrawingCanvas = ({
     contextRef.current.strokeStyle = borderColor; // Establecer el color del borde
     contextRef.current.lineWidth = borderWidth; // Establecer el grosor del borde
     contextRef.current.beginPath();
-    contextRef.current.arc(point_x, point_y, 5, 0, 2 * Math.PI);
+    contextRef.current.arc(x_coord, y_coord, 5, 0, 2 * Math.PI);
     contextRef.current.fill();
     contextRef.current.stroke(); // Dibujar el borde
     contextRef.current.strokeStyle = currentStrokeStyle;
@@ -275,33 +256,24 @@ export const DrawingCanvas = ({
     const x_coord = (event.clientX - canvasOffSetX.current) * (canvas.width / canvasOffSet.width);
     const y_coord = (event.clientY - canvasOffSetY.current) * (canvas.height / canvasOffSet.height);
 
-    const point = { point: { x: x_coord, y: y_coord } };
-    const radius = 5;
-    const borderWidth = 2; // Grosor del borde
-    const borderColor = 'black'; // Color del borde
-    const currentStrokeStyle = contextRef.current.strokeStyle;
-    context.beginPath();
-    context.arc(x_coord, y_coord, radius, 0, 2 * Math.PI);
-    const fillStyle = selectedOption === 0 ? NEGATIVE_POINT_COLOR : POSITIVE_POINT_COLOR;
-    context.fillStyle = fillStyle;
-    contextRef.current.strokeStyle = borderColor; // Establecer el color del borde
-    contextRef.current.lineWidth = borderWidth; // Establecer el grosor del borde
-    context.fill();
-    contextRef.current.stroke(); // Dibujar el borde
-    contextRef.current.strokeStyle = currentStrokeStyle;
+    handleScaleChange(canvas.width / canvasOffSet.width, canvas.height / canvasOffSet.height);
 
-    console.log('----------------Creando punto----------------');
-    console.log('He guardado el punto con: ');
-    console.log('x: ' + x_coord + ' y: ' + y_coord);
-    console.log('Pero en realidad he pulsado en:');
-    console.log('x: ' + event.clientX + ' y: ' + event.clientY);
-    console.log('Con un offset de:');
-    console.log('x: ' + canvasOffSetX.current + ' y: ' + canvasOffSetY.current);
-    console.log('Con una escala de:');
-    console.log(
-      'x: ' + canvas.width / canvasOffSet.width + ' y: ' + canvas.height / canvasOffSet.height
-    );
-    console.log('--------------------------------\n\n');
+    const point = { point: { x: x_coord, y: y_coord } };
+    const fillStyle = selectedOption === 0 ? NEGATIVE_POINT_COLOR : POSITIVE_POINT_COLOR;
+    drawPoint(x_coord, y_coord, fillStyle);
+
+    // console.log('----------------Creando punto----------------');
+    // console.log('He guardado el punto con: ');
+    // console.log('x: ' + x_coord + ' y: ' + y_coord);
+    // console.log('Pero en realidad he pulsado en:');
+    // console.log('x: ' + event.clientX + ' y: ' + event.clientY);
+    // console.log('Con un offset de:');
+    // console.log('x: ' + canvasOffSetX.current + ' y: ' + canvasOffSetY.current);
+    // console.log('Con una escala de:');
+    // console.log(
+    //   'x: ' + canvas.width / canvasOffSet.width + ' y: ' + canvas.height / canvasOffSet.height
+    // );
+    // console.log('--------------------------------\n\n');
 
     addPoint(point);
   };

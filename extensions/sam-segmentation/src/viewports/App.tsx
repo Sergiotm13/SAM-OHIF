@@ -15,15 +15,26 @@ function App({ servicesManager }) {
   const [positivePoints, setPositivePoints] = useState([]);
   const [negativePoints, setNegativePoints] = useState([]);
   const [model, setModel] = React.useState(null);
-  const [modalDisplay, setModalDisplay] = useState('block');
-  const [imageSrc, setImageSrc] = useState('');
+
+  const [imageSrc, setImageSrc] = useState(null);
 
   const [activeCanvasWidth, setActiveCanvasWidth] = useState(null);
   const [activeCanvasHeight, setActiveCanvasHeight] = useState(null);
   const [activeCanvasTop, setActiveCanvasTop] = useState(null);
   const [activeCanvasLeft, setActiveCanvasLeft] = useState(null);
+  const [scaleX, setScaleX] = useState(1);
+  const [scaleY, setScaleY] = useState(1);
 
   const { viewportGridService } = servicesManager.services;
+
+  const handleCanvasClean = () => {
+    setSelectedOption(-1);
+  };
+
+  const handleScaleChange = (scaleX, scaleY) => {
+    setScaleX(scaleX);
+    setScaleY(scaleY);
+  };
 
   const handleChangeOption = (buttonNumber: number) => {
     if (selectedOption === buttonNumber) {
@@ -33,44 +44,7 @@ function App({ servicesManager }) {
     }
   };
 
-  const closeModal = () => {
-    document.getElementById('customModal').style.display = 'none';
-  };
-
-  const closeModalWithFade = () => {
-    setModalDisplay('fadeOut');
-    setTimeout(() => {
-      closeModal();
-      setModalDisplay('none');
-    }, 500);
-  };
-
-  const showModal = () => {
-    document.getElementById('customModal').style.display = 'flex';
-  };
-
-  const sendImageAndInputsToServer = async () => {
-    const sam_input = {
-      model: model ? model.label : undefined,
-      rectangles: rectangles.map(single_rectangle => ({
-        startX: single_rectangle.rect[0].startX,
-        startY: single_rectangle.rect[0].startY,
-        width: single_rectangle.rect[0].width,
-        height: single_rectangle.rect[0].height,
-      })),
-      positive_points: positivePoints.map(single_point => ({
-        x: single_point.point.x,
-        y: single_point.point.y,
-      })),
-      negative_points: negativePoints.map(single_point => ({
-        x: single_point.point.x,
-        y: single_point.point.y,
-      })),
-    };
-
-    console.log(sam_input);
-
-    // Obtengo la imagen que está editando el sanitario
+  const getImageUsed = () => {
     // Obtener el id del viewport activo
     const active_viewport_id = viewportGridService.getActiveViewportId();
 
@@ -95,10 +69,43 @@ function App({ servicesManager }) {
     if (!canvas) {
       return;
     }
-    // Ya tengo la imagen en canvas.toDataURL('image/png')
+    return canvas.toDataURL('image/png');
+  };
+
+  const sendImageAndInputsToServer = async () => {
+    positivePoints.forEach(single_point => {
+      console.log('Tengo un punto positivo para mandar a la api');
+      console.log('Con las siguientes coordenadas:');
+      console.log('El x: ', single_point.point.x);
+      console.log('El y: ', single_point.point.y);
+      console.log('El scaleX: ', scaleX);
+      console.log('El scaleY: ', scaleY);
+    });
+
+    const sam_input = {
+      model: model ? model.label : undefined,
+      rectangles: rectangles.map(single_rectangle => ({
+        startX: single_rectangle.rect[0].startX,
+        startY: single_rectangle.rect[0].startY,
+        width: single_rectangle.rect[0].width,
+        height: single_rectangle.rect[0].height,
+      })),
+      positive_points: positivePoints.map(single_point => ({
+        x: single_point.point.x / scaleX,
+        y: single_point.point.y / scaleY,
+      })),
+      negative_points: negativePoints.map(single_point => ({
+        x: single_point.point.x / scaleX,
+        y: single_point.point.y / scaleY,
+      })),
+    };
+
+    console.log(sam_input);
+
+    const imageUsed = getImageUsed();
 
     const formData = new FormData();
-    formData.append('file', imageDataUrlToBlob(canvas.toDataURL('image/png')), 'image.png');
+    formData.append('file', imageDataUrlToBlob(imageUsed), 'image.png');
     formData.append('sam_input', JSON.stringify(sam_input));
 
     try {
@@ -180,33 +187,6 @@ function App({ servicesManager }) {
 
   return (
     <>
-      {/* <div id="customModal" className={`custom-modal custom-modal-previewing ${modalDisplay}`}>
-        <div className={`modal-content modal-preview ${modalDisplay}`}>
-          <span className="close-btn" onClick={closeModalWithFade}>
-            &times;
-          </span>
-
-          <ImageContainer
-            selectedOption={selectedOption}
-            servicesManager={servicesManager}
-            rectangles={rectangles}
-            setRectangles={setRectangles}
-            positivePoints={positivePoints}
-            setPositivePoints={setPositivePoints}
-            negativePoints={negativePoints}
-            setNegativePoints={setNegativePoints}
-            imageSrc={imageSrc}
-            setImageSrc={setImageSrc}
-          />
-
-          <UserOptions
-            handleChangeOption={handleChangeOption}
-            selectedOption={selectedOption}
-            setModel={setModel}
-            segment={segment}
-          />
-        </div>
-      </div> */}
       <button onClick={prepare_sam_segmentation}>SAM Segmentation</button>
       <UserOptions
         handleChangeOption={handleChangeOption}
@@ -229,6 +209,8 @@ function App({ servicesManager }) {
           activeCanvasHeight={activeCanvasHeight}
           activeCanvasTop={activeCanvasTop}
           activeCanvasLeft={activeCanvasLeft}
+          handleScaleChange={handleScaleChange}
+          onCanvasClean={handleCanvasClean}
         />
       </Portal>
     </>
