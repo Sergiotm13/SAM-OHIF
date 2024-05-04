@@ -1,12 +1,19 @@
 import React from 'react';
 import '../styles/UserOptions.css';
-import PointSvg from '../assets/point.svg';
-import SquareSvg from '../assets/box.svg';
-import EraseSvg from '../assets/erase.svg';
-import Select from 'react-select';
-import { darkThemeStyles } from '../styles/react-select-custom-styles';
+import SquareSvg from '../assets/box-icon.svg';
+import EraseSvg from '../assets/erase-icon.svg';
+import SegmentSvg from '../assets/segmenta-icon.svg';
+import PositivePointSvg from '../assets/pp-icon.svg';
+import NegativePointSvg from '../assets/np-icon.svg';
 
-export default function UserOptions({ handleChangeOption, selectedOption, setModel, segment }) {
+export default function UserOptions({
+  handleChangeOption,
+  selectedOption,
+  setModel,
+  segment,
+  toggleMask,
+  handleToggleMask,
+}) {
   const handleUserChangedOption = (opt: number) => {
     console.log('User changed option:', opt);
     handleChangeOption(opt);
@@ -19,35 +26,20 @@ export default function UserOptions({ handleChangeOption, selectedOption, setMod
 
   return (
     <div id="options">
-      <Select
-        className="select-input"
-        classNamePrefix="select"
-        name="color"
-        isSearchable={true}
-        options={[
-          { value: 'red', label: 'Red' },
-          { value: 'green', label: 'Green' },
-          { value: 'blue', label: 'Blue' },
-        ]}
-        styles={darkThemeStyles}
-        onChange={e => handleUserChangedModel(e)}
-        placeholder="Select SAM model"
-      />
+      <button
+        onClick={() => handleUserChangedOption(1)}
+        className={`option ${selectedOption === 1 ? 'active' : ''}`}
+      >
+        <PositivePointSvg className="option-icon" />
+        Positive Point
+      </button>
 
       <button
         onClick={() => handleUserChangedOption(0)}
         className={`option ${selectedOption === 0 ? 'active' : ''}`}
       >
-        <PointSvg className="option-icon" />
+        <NegativePointSvg className="option-icon" />
         Negative Point
-      </button>
-
-      <button
-        onClick={() => handleUserChangedOption(1)}
-        className={`option ${selectedOption === 1 ? 'active' : ''}`}
-      >
-        <PointSvg className="option-icon" />
-        Positive Point
       </button>
 
       <button
@@ -63,10 +55,17 @@ export default function UserOptions({ handleChangeOption, selectedOption, setMod
         Clear screen
       </button>
 
-      <button onClick={() => segment()} className="option">
-        <EraseSvg className="option-icon" />
-        Segment
-      </button>
+      <div className="end-options">
+        {toggleMask && (
+          <button onClick={() => handleToggleMask()} className="option">
+            Toggle Mask
+          </button>
+        )}
+        <button onClick={() => segment()} className="option segment-option">
+          Segment
+          <SegmentSvg className="option-icon" />
+        </button>
+      </div>
     </div>
   );
 }

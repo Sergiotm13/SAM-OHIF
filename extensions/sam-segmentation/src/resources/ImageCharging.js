@@ -3,6 +3,9 @@ import { handleResize } from './ScreenHandler';
 export const drawImage = (imageSrc, canvasRef) => {
   if (imageSrc) {
     const canvas = canvasRef.current;
+    if (canvas !== null && canvas.getContext('2d') !== null) {
+      return;
+    }
     const context = canvas.getContext('2d');
 
     const image = new Image();

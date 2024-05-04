@@ -221,14 +221,16 @@ export default function PanelSegmentation({
     });
   };
 
-  const entry = extensionManager.getModuleEntry('sam-segmentation.viewportModule.test-component');
+  const entry = extensionManager.getModuleEntry(
+    'sam-segmentation.viewportModule.sam-segmentation-component'
+  );
   const content = entry.component;
   console.log('- - Lo siguiente es el content: ');
   console.log(content);
-  
+
   return (
     <>
-      <div className="ohif-scrollbar flex min-h-0 flex-auto select-none flex-col justify-between overflow-auto">
+      <div className="ohif-scrollbar flex min-h-0 flex-auto select-none flex-col overflow-auto">
         <SegmentationGroupTable
           title={t('Segmentations')}
           segmentations={segmentations}
@@ -277,7 +279,7 @@ export default function PanelSegmentation({
             _setSegmentationConfiguration(selectedSegmentationId, 'fillAlphaInactive', value)
           }
         />
-        <div style={{ color: 'white' }}>{content()}</div>
+        {content()}
       </div>
     </>
   );

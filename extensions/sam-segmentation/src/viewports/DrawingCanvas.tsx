@@ -1,14 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
 import React from 'react';
 import { Point, type Box } from '../types/types';
-import { POSITIVE_POINT_COLOR, NEGATIVE_POINT_COLOR, BOX_COLOR } from '../resources/const';
+import {
+  POSITIVE_POINT_COLOR,
+  NEGATIVE_POINT_COLOR,
+  BOX_COLOR,
+  BOX_WIDTH,
+  BORDER_POINT_COLOR,
+  BORDER_POINT_WIDTH,
+} from '../resources/const';
 import { handleResize } from '../resources/ScreenHandler';
-// import the css
 import '../styles/DrawingCanvas.css';
-import { add } from '@kitware/vtk.js/Common/Core/Math';
-import { useDebounce } from 'platform/app/src/hooks';
 
 export const DrawingCanvas = ({
+  segmenting,
   selectedOption,
   servicesManager,
   rectangles,
@@ -23,6 +28,7 @@ export const DrawingCanvas = ({
   activeCanvasLeft,
   handleScaleChange,
   onCanvasClean,
+  imgSrc,
 }) => {
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
@@ -38,11 +44,11 @@ export const DrawingCanvas = ({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-
     const context = canvas.getContext('2d');
 
     contextRef.current = context;
     contextRef.current.strokeStyle = BOX_COLOR;
+    contextRef.current.lineWidth = BOX_WIDTH;
 
     rectangles.forEach(rectangle => {
       contextRef.current.strokeRect(
@@ -61,19 +67,6 @@ export const DrawingCanvas = ({
       drawPoint(point.point.x, point.point.y, NEGATIVE_POINT_COLOR);
     });
   }, [positivePoints, negativePoints, rectangles]);
-
-  useEffect(() => {
-    setVars();
-
-    const handleResizeUpdateVars = () => {
-      setVars();
-    };
-
-    window.addEventListener('resize', handleResizeUpdateVars);
-    return () => {
-      window.removeEventListener('resize', handleResizeUpdateVars);
-    };
-  }, []);
 
   useEffect(() => {
     if (selectedOption === 3) {
@@ -118,21 +111,6 @@ export const DrawingCanvas = ({
       .clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
   };
 
-  const setVars = () => {
-    const canvas = canvasRef.current;
-
-    const context = canvas.getContext('2d');
-    context.lineCap = 'round';
-    context.strokeStyle = 'black';
-    context.lineWidth = 5;
-    contextRef.current = context;
-
-    const canvasOffSet = canvas.getBoundingClientRect();
-
-    canvasOffSetY.current = canvasOffSet.top;
-    canvasOffSetX.current = canvasOffSet.left;
-  };
-
   const startDrawingRectangle = ({ nativeEvent }) => {
     nativeEvent.preventDefault();
     nativeEvent.stopPropagation();
@@ -171,6 +149,7 @@ export const DrawingCanvas = ({
     contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
     contextRef.current.strokeStyle = BOX_COLOR;
+    contextRef.current.lineWidth = BOX_WIDTH;
 
     rectangles.forEach(rectangle => {
       contextRef.current.strokeRect(
@@ -214,41 +193,27 @@ export const DrawingCanvas = ({
 
   const drawPoint = (point_x: number, point_y: number, fillStyle: string) => {
     const canvas = canvasRef.current;
-    const canvasOffSet = canvas.getBoundingClientRect();
     const x_coord = point_x;
     const y_coord = point_y;
-
     const context = canvas.getContext('2d');
     context.lineCap = 'round';
-
     contextRef.current = context;
 
-    const borderWidth = 2; // Grosor del borde
-    const borderColor = 'black'; // Color del borde
     const currentStrokeStyle = contextRef.current.strokeStyle;
 
     contextRef.current.fillStyle = fillStyle;
-    contextRef.current.strokeStyle = borderColor; // Establecer el color del borde
-    contextRef.current.lineWidth = borderWidth; // Establecer el grosor del borde
-    contextRef.current.beginPath();
-    contextRef.current.arc(x_coord, y_coord, 5, 0, 2 * Math.PI);
-    contextRef.current.fill();
-    contextRef.current.stroke(); // Dibujar el borde
-    contextRef.current.strokeStyle = currentStrokeStyle;
+    contextRef.current.strokeStyle = BORDER_POINT_COLOR;
+    contextRef.current.lineWidth = BORDER_POINT_WIDTH;
 
-    // console.log('----------------Dibujando punto----------------');
-    // console.log('He dibujado el punto guardado como: ');
-    // console.log('x: ' + point_x + ' y: ' + point_y);
-    // console.log('Pero en realidad he dibujado:');
-    // console.log('x: ' + x + ' y: ' + y);
-    // console.log('Con un offset de:');
-    // console.log('x: ' + canvasOffSetX.current + ' y: ' + canvasOffSetY.current);
-    // console.log('--------------------------------\n\n');
+    contextRef.current.beginPath();
+    contextRef.current.arc(x_coord, y_coord, 8, 0, 2 * Math.PI);
+    contextRef.current.fill();
+    contextRef.current.stroke();
+    contextRef.current.strokeStyle = currentStrokeStyle;
   };
 
   const handleCanvasClick = (event: React.MouseEvent) => {
     const canvas = canvasRef.current;
-    const context = canvas.getContext('2d');
     const canvasOffSet = canvas.getBoundingClientRect();
     canvasOffSetY.current = canvasOffSet.top;
     canvasOffSetX.current = canvasOffSet.left;
@@ -262,25 +227,24 @@ export const DrawingCanvas = ({
     const fillStyle = selectedOption === 0 ? NEGATIVE_POINT_COLOR : POSITIVE_POINT_COLOR;
     drawPoint(x_coord, y_coord, fillStyle);
 
-    // console.log('----------------Creando punto----------------');
-    // console.log('He guardado el punto con: ');
-    // console.log('x: ' + x_coord + ' y: ' + y_coord);
-    // console.log('Pero en realidad he pulsado en:');
-    // console.log('x: ' + event.clientX + ' y: ' + event.clientY);
-    // console.log('Con un offset de:');
-    // console.log('x: ' + canvasOffSetX.current + ' y: ' + canvasOffSetY.current);
-    // console.log('Con una escala de:');
-    // console.log(
-    //   'x: ' + canvas.width / canvasOffSet.width + ' y: ' + canvas.height / canvasOffSet.height
-    // );
-    // console.log('--------------------------------\n\n');
-
     addPoint(point);
   };
 
+  useEffect(() => {
+    // Draw the image on the canvas as background
+    if (imgSrc === undefined) return;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    const img = new Image();
+    img.src = imgSrc;
+    img.onload = () => {
+      context.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+  }, [imgSrc]);
+
   return (
     <canvas
-      className="canvas-container-rect"
+      className={`canvas-container-rect  ${segmenting ? '' : 'not-segmenting'}`}
       id="new_captured_canvas"
       ref={canvasRef}
       onMouseDown={startDrawingRectangle}
@@ -288,12 +252,12 @@ export const DrawingCanvas = ({
       onMouseUp={stopDrawingRectangle}
       onMouseLeave={stopDrawingRectangle}
       onClick={handleCanvasClick}
+      width={activeCanvasWidth - 20}
+      height={activeCanvasHeight - 20}
       style={{
         position: 'fixed',
         top: `${activeCanvasTop}px`,
         left: `${activeCanvasLeft}px`,
-        width: `${activeCanvasWidth}px`,
-        height: `${activeCanvasHeight}px`,
         zIndex: 9999999991000,
         pointerEvents: 'auto',
         display: 'block',

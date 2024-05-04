@@ -45,20 +45,18 @@ export default {
       );
       */
 
-    const testComponent = props => {
+    const SamComponent = props => {
       return (
-        <>
-          <App
-            servicesManager={servicesManager}
-            commandsManager={commandsManager}
-            extensionManager={extensionManager}
-            {...props}
-          ></App>
-        </>
+        <App
+          servicesManager={servicesManager}
+          commandsManager={commandsManager}
+          extensionManager={extensionManager}
+          {...props}
+        ></App>
       );
     };
 
-    return [{ name: 'test-component', component: testComponent }];
+    return [{ name: 'sam-segmentation-component', component: SamComponent }];
   },
   /**
    * ToolbarModule should provide a list of tool buttons that will be available in OHIF

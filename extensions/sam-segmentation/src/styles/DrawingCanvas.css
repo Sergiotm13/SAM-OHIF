@@ -1,0 +1,9 @@
+.canvas-container-rect {
+  border: 10px solid red;
+}
+
+.not-segmenting {
+  border: none;
+  display: none;
+  width: 0px !important;
+}
