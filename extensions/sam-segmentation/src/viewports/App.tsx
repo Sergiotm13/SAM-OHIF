@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, CSSProperties } from 'react';
 import '../styles/App.css';
 import UserOptions from './UserOptions';
 import React from 'react';
@@ -8,13 +8,35 @@ import Portal from './Portal';
 import DropDownSvg from '../assets/drop-down-icon.svg';
 import DropLeftSvg from '../assets/drop-left-icon.svg';
 
+import {
+  POSITIVE_POINT_COLOR,
+  NEGATIVE_POINT_COLOR,
+  BOX_COLOR,
+  BOX_WIDTH,
+  BORDER_POINT_COLOR,
+  BORDER_POINT_WIDTH,
+} from '../resources/const';
+
+import BeatLoader from 'react-spinners/ClipLoader';
+import { set } from '@kitware/vtk.js/macros';
+
+const override_spinner_css: CSSProperties = {
+  display: 'block',
+  margin: '0 auto',
+  position: 'fixed',
+  top: '50%',
+  left: '50%',
+};
+
 function App({ servicesManager }) {
   const [selectedOption, setSelectedOption] = useState(-2);
 
   const [rectangles, setRectangles] = useState([]);
   const [positivePoints, setPositivePoints] = useState([]);
   const [negativePoints, setNegativePoints] = useState([]);
-  const [model, setModel] = React.useState(null);
+  const [model, setModel] = useState(null);
+  const [boxColor, setBoxColor] = useState(BOX_COLOR);
+  const [pointsRadius, setPointsRadius] = useState(8);
 
   const [activeViewport, setActiveViewport] = useState(null);
   const [segmenting, setSegmenting] = useState(false);
@@ -29,6 +51,8 @@ function App({ servicesManager }) {
   const [activeCanvasLeft, setActiveCanvasLeft] = useState(null);
   const [scaleX, setScaleX] = useState(1);
   const [scaleY, setScaleY] = useState(1);
+
+  const [loading, setLoading] = useState(false);
 
   const { viewportGridService } = servicesManager.services;
   const { uiNotificationService } = servicesManager.services;
@@ -167,14 +191,16 @@ function App({ servicesManager }) {
   };
 
   const sendImageAndInputsToServer = async () => {
-    positivePoints.forEach(single_point => {
-      console.log('Tengo un punto positivo para mandar a la api');
-      console.log('Con las siguientes coordenadas:');
-      console.log('El x: ', single_point.point.x);
-      console.log('El y: ', single_point.point.y);
-      console.log('El scaleX: ', scaleX);
-      console.log('El scaleY: ', scaleY);
-    });
+    if (positivePoints.length === 0 || negativePoints.length === 0) {
+      uiNotificationService.show({
+        title: 'Error segmenting the image',
+        message: 'You need to select at least one positive and one negative point.',
+        type: 'error',
+        duration: 3000,
+      });
+
+      return;
+    }
 
     const sam_input = {
       model: model ? model.label : undefined,
@@ -194,55 +220,79 @@ function App({ servicesManager }) {
       })),
     };
 
-    console.log(sam_input);
-
     const imageUsed = getImageUsed();
 
     const formData = new FormData();
     formData.append('file', imageDataUrlToBlob(imageUsed), 'image.png');
     formData.append('sam_input', JSON.stringify(sam_input));
-    uiNotificationService.show({
-      title: 'Segmenting the image...',
-      message: 'It can take several seconds or minutes, we will notify you when it ends.',
-      type: 'info',
-      duration: 3000,
-    });
+
+    show_segmenting_in_progress();
+
     try {
-      const response = await fetch(`http://localhost:8000/get_image_and_parameters/`, {
+      const response = await fetch(`http://localhost:8000/segment_input_image/`, {
         method: 'POST',
         body: formData,
       });
 
       const mask = await response.blob();
-      console.log(mask);
-      console.log(typeof mask);
 
-      uiNotificationService.show({
-        title: 'Image segmentation completed',
-        type: 'success',
-        duration: 3000,
-      });
-
+      show_succeeded_segmentation();
       return mask;
     } catch (error) {
-      uiNotificationService.show({
-        title: 'Error segmenting the image',
-        message: 'There was an error segmenting the image.',
-        type: 'error',
-        duration: 3000,
-      });
+      setLoading(false);
+      show_segmenting_error();
       console.error('Error:', error);
     }
   };
 
+  const show_segmenting_error = () => {
+    uiNotificationService.show({
+      title: 'Error segmenting the image',
+      message: 'There was an error segmenting the image.',
+      type: 'error',
+      duration: 3000,
+    });
+  };
+
+  const show_segmenting_in_progress = () => {
+    uiNotificationService.show({
+      title: 'Segmenting the image...',
+      message: 'It can take several seconds or minutes, wait for it to end.',
+      type: 'info',
+      duration: 20000,
+    });
+  };
+
+  const show_succeeded_segmentation = () => {
+    uiNotificationService.show({
+      title: 'Image segmentation completed',
+      type: 'success',
+      duration: 3000,
+    });
+  };
+
   const segment = async () => {
+    setLoading(true);
+
     const mask = await sendImageAndInputsToServer();
 
     const maskImg = URL.createObjectURL(mask);
 
+    setLoading(false);
+
     setMaskImageSrc(maskImg);
 
     setSelectedImage(maskImg);
+  };
+
+  const handleChangeBoxColor = (newColor: string) => {
+    console.log('Cambiando el color de los cuadros');
+    setBoxColor(newColor);
+  };
+
+  const handleChangePointsRadius = (newRadius: number) => {
+    console.log('Cambiando el grosor de los puntos');
+    setPointsRadius(newRadius);
   };
 
   return (
@@ -261,14 +311,29 @@ function App({ servicesManager }) {
         <UserOptions
           handleChangeOption={handleChangeOption}
           selectedOption={selectedOption}
-          setModel={setModel}
+          handleChangeModel={setModel}
           segment={segment}
           toggleMask={maskImageSrc ? true : false}
           handleToggleMask={handleToggleMask}
+          handleChangeBoxColor={handleChangeBoxColor}
+          handleChangePointsRadius={handleChangePointsRadius}
         />
       )}
 
       <Portal>
+        {loading && (
+          <div className="loader-container">
+            <BeatLoader
+              color={'#ffffff'}
+              loading={loading}
+              cssOverride={override_spinner_css}
+              size={150}
+              aria-label="Loading Spinner"
+              data-testid="loader"
+            />
+          </div>
+        )}
+
         <DrawingCanvas
           segmenting={segmenting}
           selectedOption={selectedOption}
@@ -286,6 +351,8 @@ function App({ servicesManager }) {
           handleScaleChange={handleScaleChange}
           onCanvasClean={handleCanvasClean}
           imgSrc={selectedImage}
+          boxColor={boxColor}
+          pointsRadius={pointsRadius}
         />
       </Portal>
     </div>

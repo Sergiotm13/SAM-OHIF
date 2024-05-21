@@ -29,6 +29,8 @@ export const DrawingCanvas = ({
   handleScaleChange,
   onCanvasClean,
   imgSrc,
+  boxColor,
+  pointsRadius,
 }) => {
   const canvasRef = useRef(null);
   const contextRef = useRef(null);
@@ -47,7 +49,7 @@ export const DrawingCanvas = ({
     const context = canvas.getContext('2d');
 
     contextRef.current = context;
-    contextRef.current.strokeStyle = BOX_COLOR;
+    contextRef.current.strokeStyle = boxColor;
     contextRef.current.lineWidth = BOX_WIDTH;
 
     rectangles.forEach(rectangle => {
@@ -148,7 +150,7 @@ export const DrawingCanvas = ({
 
     contextRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
-    contextRef.current.strokeStyle = BOX_COLOR;
+    contextRef.current.strokeStyle = boxColor;
     contextRef.current.lineWidth = BOX_WIDTH;
 
     rectangles.forEach(rectangle => {
@@ -206,7 +208,7 @@ export const DrawingCanvas = ({
     contextRef.current.lineWidth = BORDER_POINT_WIDTH;
 
     contextRef.current.beginPath();
-    contextRef.current.arc(x_coord, y_coord, 8, 0, 2 * Math.PI);
+    contextRef.current.arc(x_coord, y_coord, pointsRadius, 0, 2 * Math.PI);
     contextRef.current.fill();
     contextRef.current.stroke();
     contextRef.current.strokeStyle = currentStrokeStyle;
@@ -258,7 +260,7 @@ export const DrawingCanvas = ({
         position: 'fixed',
         top: `${activeCanvasTop}px`,
         left: `${activeCanvasLeft}px`,
-        zIndex: 9999999991000,
+        zIndex: 1000,
         pointerEvents: 'auto',
         display: 'block',
       }}

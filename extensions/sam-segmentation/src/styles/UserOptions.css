@@ -6,6 +6,7 @@
   width: 100%;
   gap: 10px;
   height: 100%;
+  padding-top: 20px;
 }
 
 .option {
@@ -52,15 +53,42 @@
   transform: scale(1.05); /* Ajustar la escala al seleccionar */
 }
 
-.select-input {
-  background-color: red;
-  width: 100%;
-}
-
 .end-options {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
   gap: 10px;
   height: 20%;
+}
+
+#configuration-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+  background-color: #041c4a; /* Cambia este color al color de fondo de tu aplicación */
+  border-radius: 10px;
+}
+
+.sam-model-container,
+.box-color-container,
+.points-radius-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sam-model-container label,
+.box-color-container label,
+.points-radius-container label {
+  font-size: 16px;
+  color: #348cfd; /* Cambia este color al color de texto de tu aplicación */
+}
+
+.sam-model-container select,
+.box-color-container input,
+.points-radius-container input {
+  padding: 10px;
+  border: 1px solid #348cfd; /* Cambia este color al color de borde de tu aplicación */
+  border-radius: 5px;
 }
