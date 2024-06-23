@@ -92,3 +92,21 @@
   border: 1px solid #348cfd; /* Cambia este color al color de borde de tu aplicación */
   border-radius: 5px;
 }
+
+.toggle-mask-div {
+  display: flex;
+  justify-content: flex-end;
+  width: 80%;
+}
+
+.toggle-mask-btn {
+  width: fit-content !important;
+
+  min-width: auto;
+}
+
+.advanced-config {
+  background-color: #040514;
+  color: white;
+  border: 3px solid #348cfd;
+}

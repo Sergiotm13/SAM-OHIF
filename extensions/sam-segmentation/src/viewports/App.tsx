@@ -190,8 +190,26 @@ function App({ servicesManager }) {
     setActiveCanvasLeft(left);
   };
 
+  async function fetchDicomFile(timestamp: number) {
+    const response = await fetch(`http://localhost:8000/get_dicom_image/${timestamp}`);
+
+    if (response.ok) {
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `output_${timestamp}.dcm`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } else {
+      console.error('Failed to fetch DICOM file', response.statusText);
+    }
+  }
+
   const sendImageAndInputsToServer = async () => {
     if (positivePoints.length === 0 || negativePoints.length === 0) {
+      setLoading(false);
       uiNotificationService.show({
         title: 'Error segmenting the image',
         message: 'You need to select at least one positive and one negative point.',
@@ -234,14 +252,38 @@ function App({ servicesManager }) {
         body: formData,
       });
 
-      const mask = await response.blob();
+      const data = await response.json();
+      const timestamp = data.timestamp;
 
+      // Fetch the segmented image
+      const imageResponse = await fetch(`http://localhost:8000/get_segmented_image/${timestamp}`);
+      const mask = await imageResponse.blob();
+
+      // Use the timestamp to fetch the DICOM file
+      console.log('Timestamp:', timestamp);
+      // Fetch the DICOM file
+      const dicomResponse = await fetch(`http://localhost:8000/get_dicom_image/${timestamp}`);
+      if (dicomResponse.ok) {
+        const dicomBlob = await dicomResponse.blob();
+        const dicomUrl = window.URL.createObjectURL(dicomBlob);
+        const a = document.createElement('a');
+        // Set a classname
+        a.className = 'download-dicom-sam';
+        a.href = dicomUrl;
+        a.download = `output_${timestamp}.dcm`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      } else {
+        console.error('Failed to fetch DICOM file', dicomResponse.statusText);
+      }
       show_succeeded_segmentation();
+
       return mask;
     } catch (error) {
       setLoading(false);
       show_segmenting_error();
-      console.error('Error:', error);
+      console.error('Error on dcm:', error);
     }
   };
 
@@ -301,7 +343,7 @@ function App({ servicesManager }) {
         className={`${!segmenting ? '' : 'exit-sam-btn'} toggle-sam-btn`}
         onClick={toggle_sam_segmentation}
       >
-        SAM Segmentation
+        AI Segmentation
         {(segmenting && <DropDownSvg className="drop-down-icon" />) || (
           <DropLeftSvg className="drop-left-icon" />
         )}
@@ -317,6 +359,7 @@ function App({ servicesManager }) {
           handleToggleMask={handleToggleMask}
           handleChangeBoxColor={handleChangeBoxColor}
           handleChangePointsRadius={handleChangePointsRadius}
+          pointsRadius={pointsRadius}
         />
       )}
 

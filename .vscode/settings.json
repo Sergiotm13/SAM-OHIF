@@ -34,5 +34,7 @@
     "source.fixAll.eslint": "explicit"
   },
   "editor.detectIndentation": true,
-  "prettier.useTabs": true
+  "prettier.useTabs": true,
+  "files.autoSave": "afterDelay",
+  "editor.linkedEditing": true
 }

@@ -16,11 +16,11 @@ export default function UserOptions({
   handleToggleMask,
   handleChangeBoxColor,
   handleChangePointsRadius,
+  pointsRadius,
 }) {
   const [selectingOptions, setSelectingOptions] = React.useState(false);
 
   const handleUserChangedOption = (opt: number) => {
-    console.log('User changed option:', opt);
     handleChangeOption(opt);
   };
 
@@ -60,14 +60,25 @@ export default function UserOptions({
         Clear screen
       </button>
 
-      <button onClick={() => setSelectingOptions(!selectingOptions)} className="option">
-        <ConfigSvg className="option-icon" />
-      </button>
+      <div className="toggle-mask-div">
+        <button
+          onClick={() => setSelectingOptions(!selectingOptions)}
+          className="option toggle-mask-btn"
+        >
+          <ConfigSvg className="option-icon" />
+        </button>
+      </div>
+
       {selectingOptions && (
         <div id="configuration-container">
           <div className="sam-model-container">
-            <label htmlFor="sam-model-select">SAM model</label>
-            <select name="sam-model" id="sam-model-select" onChange={handleChangeModel}>
+            <label htmlFor="sam-model-select">AI Model</label>
+            <select
+              name="sam-model"
+              id="sam-model-select"
+              onChange={handleChangeModel}
+              className="advanced-config"
+            >
               <option value="Standard">Standard</option>
               <option value="HuggingFace">HuggingFace</option>
               <option value="MiSAM">MiSAM</option>
@@ -79,6 +90,7 @@ export default function UserOptions({
               type="color"
               id="box-color"
               name="box-color"
+              className="advanced-config"
               onChange={event => handleChangeBoxColor(event.target.value)}
             />
           </div>
@@ -88,6 +100,8 @@ export default function UserOptions({
               type="number"
               id="points-radius"
               name="points-radius"
+              className="advanced-config"
+              value={pointsRadius}
               onChange={event => handleChangePointsRadius(event.target.value)}
             />
           </div>
