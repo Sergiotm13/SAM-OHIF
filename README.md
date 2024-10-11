@@ -1,4 +1,46 @@
 <!-- prettier-ignore-start -->
+# OHIF Medical Imaging Viewer - SAM Segmentation Plugin
+
+## Overview
+This project includes a custom plugin developed to integrate the **Segment Anything Model (SAM)** by Meta into the **OHIF** (Open Health Imaging Foundation) Viewer. This extension provides medical professionals with a semi-automated segmentation tool for identifying areas of interest in medical images such as CT and MRI scans.
+
+The plugin communicates with the SAM-based segmentation backend API and displays results within the OHIF viewer, allowing users to leverage advanced AI-assisted segmentation directly within a familiar interface.
+
+## Features
+- **Seamless integration** with OHIF Viewer.
+- **AI-based segmentation**: Utilizes SAM to automate the segmentation process.
+- **User-friendly interface**: Provides intuitive options for selecting and visualizing segmented areas.
+- **Supports common medical image formats**: Fully compatible with DICOM images, enabling interaction with a wide variety of medical imaging data.
+  
+## Installation
+
+### Prerequisites
+To use this plugin, you need:
+- **OHIF Viewer** installed and configured.
+- Access to the **SAM Segmentation API** backend.
+
+### Steps to Install
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/Sergiotm13/SAM-OHIF.git
+   cd SAM-OHIF
+   yarn install
+   yarn run dev
+   ```
+
+## Usage
+The plugin provides the following options to facilitate image segmentation:
+- **Positive and Negative Points**: Users can mark areas within an image to include or exclude in the segmentation process.
+- **Rectangular Selection**: Allows selection of a specific region in the image to focus on for segmentation.
+- **Result Display**: Segmentation results are displayed as overlays on the medical images, enabling easy visualization and assessment by healthcare professionals.
+
+## Contributing
+Contributions are welcome to enhance the functionality of the plugin and improve user experience. Please fork the repository, make your changes, and submit a pull request for review.
+
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+
+
 <!-- markdownlint-disable -->
 <div align="center">
   <h1>OHIF Medical Imaging Viewer</h1>
